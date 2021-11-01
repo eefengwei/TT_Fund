@@ -16,12 +16,16 @@ str_now_day = time.strftime("%Y-%m-%d", time.localtime(time.time())).replace('-'
 
 # 存csv
 def save_item_in_csv(item, file_name, titleNum=0):
-    with open(file_name, "a", encoding="utf-8-sig") as f:
+    if titleNum == 0:
+        mode = 'w'
+    else:
+        mode = 'a'
+
+    with open(file_name, mode, encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=item.keys())
         if titleNum == 0:
             writer.writeheader()
         writer.writerow(item)
-
 
 # --------------------------------这些是我个性化的设置---end--------------------------------
 
