@@ -9,12 +9,9 @@ from tt_fund.settings import save_item_in_csv
 各爬虫说明详见github项目 https://github.com/CBJerry993/tt_fund
 """
 
-
 class IndexSpider(scrapy.Spider):
     name = 'market_index'
     allowed_domains = ['eastmoney.com/']
-    # 表头仅存一次
-    title_num_1 = 0
     # 上证指数、深圳成指、创业板指
     cid_list = ["1.000001", "0.399001", "0.399006"]
     # format设置查询的开始和结束日期
@@ -26,10 +23,19 @@ class IndexSpider(scrapy.Spider):
     def parse(self, response):
         response = re.findall(r'\((.*?)\);$', response.text)[0]
         response = json.loads(response)
+        name_list = {}
         for i in response.get("data").get("klines"):
-            item = {"code": response.get("data").get("code"), "name": response.get("data").get("name"),
+            name = response.get("data").get("name")
+            item = {"name": name, "code": response.get("data").get("code"),
                     "datetime": i.split(",")[0], "price_start": i.split(",")[1], "price_end": i.split(",")[2],
                     "price_max": i.split(",")[3], "price_min": i.split(",")[4], "amount": i.split(",")[5],
                     "value": i.split(",")[6], "swing": i.split(",")[7]}
-            print(item), save_item_in_csv(item, "market_index_{}.csv".format(str_now_day), self.title_num_1)
-            self.title_num_1 = 1
+
+            if name not in name_list:
+                write_header = 0
+                name_list[name] = 0
+            else:
+                write_header = 1
+
+            print(item)
+            save_item_in_csv(item, "market_index_{}_{}.csv".format(name, str_now_day), write_header)
